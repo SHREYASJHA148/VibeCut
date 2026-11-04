@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "VibeCut",
+    "slug": "vibecut",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/vibecut-icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vibecut.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/vibecut-icon.png",
+        "backgroundColor": "#0A0A0B"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.vibecut.app",
+      "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/vibecut-favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-sharing",
+      "expo-secure-store",
+      "react-native-audio-api",
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}

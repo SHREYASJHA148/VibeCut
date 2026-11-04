@@ -1,0 +1,27 @@
+import React, { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Button, Empty, Icon, IconButton, Input, s, TrackRow } from '../components';
+import { colors as c } from '../theme';
+import { useLibrary } from '../state';
+import { usePlayback } from '../audio/player';
+import { Track, uid } from '../model';
+export function LibraryScreen({ importAudio, options }: { importAudio: () => void; options: (track: Track) => void }) {
+  const { data, update } = useLibrary(), player = usePlayback();
+  const [filter, setFilter] = useState('All tracks'), [name, setName] = useState(''), [creating, setCreating] = useState(false), [selected, setSelected] = useState<string>();
+  const playlist = data.playlists.find(p => p.id === selected);
+  const tracks = playlist ? playlist.trackIds.map(id => data.tracks.find(t => t.id === id)).filter((t): t is Track => !!t)
+    : filter === 'Saved' ? data.tracks.filter(t => data.likes.includes(t.id))
+    : filter === 'Recent' ? data.history.map(id => data.tracks.find(t => t.id === id)).filter((t): t is Track => !!t) : data.tracks;
+  const move = (index: number, delta: number) => update(d => ({ ...d, playlists: d.playlists.map(p => { if (p.id !== selected) return p; const ids = [...p.trackIds]; [ids[index], ids[index + delta]] = [ids[index + delta], ids[index]]; return { ...p, trackIds: ids }; }) }));
+  return <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    <View style={s.between}><View style={{ gap: 8 }}><Text style={s.eyebrow}>KEEP IT CLOSE</Text><Text style={s.h1}>Your library</Text></View><IconButton name="add" label="Import audio files" onPress={importAudio} /></View>
+    <View style={s.row}>{['All tracks', 'Saved', 'Recent'].map(label => <Pressable key={label} style={[s.chip, filter === label && !selected && { backgroundColor: c.elevated, borderColor: c.blue }]} onPress={() => { setFilter(label); setSelected(undefined); }}><Text style={s.text}>{label}</Text></Pressable>)}</View>
+    <View style={s.between}><Text style={s.h2}>Playlists</Text><IconButton name="add-circle-outline" label="Create playlist" onPress={() => setCreating(v => !v)} /></View>
+    {creating && <View style={s.card}><Input accessibilityLabel="New playlist name" placeholder="Give it a name" maxLength={70} value={name} onChangeText={setName} /><Button title="Create playlist" disabled={!name.trim()} onPress={() => { const id = uid(); update(d => ({ ...d, playlists: [...d.playlists, { id, name: name.trim(), trackIds: [] }] })); setSelected(id); setCreating(false); setName(''); }} /></View>}
+    {!!data.playlists.length && <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>{data.playlists.map(p => <Pressable key={p.id} onPress={() => setSelected(p.id)} style={[s.card, { width: 150, borderColor: p.id === selected ? c.blue : c.border }]}><Icon name="albums-outline" color={c.pink} size={28} /><Text numberOfLines={1} style={s.trackTitle}>{p.name}</Text><Text style={s.small}>{p.trackIds.length} tracks</Text></Pressable>)}</ScrollView>}
+    {playlist && <View style={s.card}><Input accessibilityLabel="Playlist name" key={playlist.id} defaultValue={playlist.name} maxLength={70} onEndEditing={e => { const name = e.nativeEvent.text.trim(); if (name) update(d => ({ ...d, playlists: d.playlists.map(p => p.id === playlist.id ? { ...p, name } : p) })); }} /><View style={s.between}><Button title="Play playlist" icon="play" disabled={!tracks.length} onPress={() => player.play(tracks[0].id, playlist.trackIds)} /><IconButton name="trash-outline" label="Delete playlist" onPress={() => { update(d => ({ ...d, playlists: d.playlists.filter(p => p.id !== playlist.id) })); setSelected(undefined); }} /></View><Text style={s.small}>Use a track’s options to add it to this playlist.</Text></View>}
+    <View><View style={s.between}><Text style={s.h2}>{playlist?.name || filter}</Text><Text style={s.small}>{tracks.length} tracks</Text></View>{tracks.map((track, index) => <View key={track.id}><TrackRow track={track} queue={tracks.map(t => t.id)} onOptions={() => options(track)} />{playlist && <View style={[s.row, { justifyContent: 'flex-end' }]}><IconButton name="arrow-up" label="Move track earlier" disabled={!index} onPress={() => move(index, -1)} /><IconButton name="arrow-down" label="Move track later" disabled={index === tracks.length - 1} onPress={() => move(index, 1)} /><IconButton name="remove-circle-outline" label="Remove from playlist" onPress={() => update(d => ({ ...d, playlists: d.playlists.map(p => p.id === selected ? { ...p, trackIds: p.trackIds.filter(id => id !== track.id) } : p) }))} /></View>}</View>)}</View>
+    {!tracks.length && <Empty icon="library-outline" title={playlist ? 'Make room for your favorites' : 'Music lives here'} body={playlist ? 'Add tracks using the options beside any imported song.' : 'Import audio files to build your collection. Everything stays on your device.'}>{!playlist && <Button title="Import audio" icon="download-outline" onPress={importAudio} />}</Empty>}
+    <Text style={[s.small, { lineHeight: 20 }]}>{(data.tracks.reduce((n, t) => n + t.bytes, 0) / 1024 / 1024).toFixed(1)} MB stored · {data.tracks.filter(t => t.source !== 'audius').length} local files · {data.tracks.filter(t => t.source === 'audius').length} online tracks{'\n'}Remove tracks through their options to free device storage.</Text>
+  </ScrollView>;
+}

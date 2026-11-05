@@ -4,6 +4,14 @@ A dark-themed music player and manual mashup editor built with Expo, React Nativ
 
 **Status: working prototype.** Browser playback and automated tests have been verified. Native Android/iOS builds, physical-device behavior and production deployment still need validation. This is not a Spotify catalog mirror or a full professional audio workstation.
 
+## Download for Android
+
+[Open the VibeCut APK download page on Expo][android-build] on your Android phone, or scan this QR code. Expo may ask you to sign in with an account that has access to the build.
+
+[<img src="docs/vibecut-android-qr.png" alt="QR code for the VibeCut Android build on Expo" width="220">][android-build]
+
+[android-build]: https://expo.dev/accounts/shreyasjha148/projects/vibecut/builds/9397db3c-b0f4-4e98-bd5e-8d35e115aebc
+
 ## At a glance
 
 | Feature | Current behavior |
@@ -104,7 +112,7 @@ npm ci
 npm run android
 ```
 
-After installing the development build, use `npm start`. This app uses a native mixing library and **requires a development build; Expo Go is insufficient**. An internal APK can also be built with `npx eas-cli build --platform android --profile preview` after configuring your own Expo account. No cloud build has been submitted.
+After installing the development build, use `npm start`. This app uses a native mixing library and **requires a development build; Expo Go is insufficient**. An internal APK can also be built with `npx eas-cli build --platform android --profile preview` after configuring your own Expo account.
 
 For a browser preview: `npm run web`. Browser audio uses Web Audio; files persist in IndexedDB. The browser preview is a testing aid; the primary product is the mobile app.
 
